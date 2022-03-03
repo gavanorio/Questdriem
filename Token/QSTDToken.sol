@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.10;
+pragma solidity 0.8.10;
 
 /*
 INHERITANCE CLASSES
@@ -134,7 +134,7 @@ TOKEN INFO
     string public _name = "QuestDM";
     string public _symbol = "QSTD";
 
-    address payable public taxAddress = payable(0x1e33fe4fB6c756dbaa15c6b280c7824330D0aB5B);
+    address payable public taxAddress = payable(0x1e33fe4fB6c756dbaa15c6b280c7824330D0aB5B); 
     address public contractAddress = address(this);
 
 
@@ -150,7 +150,7 @@ TOKEN INFO
     event Approval(address indexed owner, address indexed spender, uint value);
 
     constructor() {
-        balances[msg.sender] = _totalSupply;
+        balances[0x45211A747Ad8cE169e9E882acEe5d4E8942de9B8] = _totalSupply;
 
     }
 
@@ -308,10 +308,12 @@ INCLUDE AND EXCLUDE FROM FEES FUNCTIONS
 */
 
     function excludeFromFee(address account) public onlyOwner {
+        require(_isExcludedFromFee[account] == false, "address is already excluded");
         _isExcludedFromFee[account] = true;
     }
     
     function includeInFee(address account) public onlyOwner {
+        require(_isExcludedFromFee[account] == true, "address is already included");
         _isExcludedFromFee[account] = false;
     }
 
@@ -358,17 +360,15 @@ ONLYOWNER EDIT CONTRACT FUNCTIONS
     function manualBurn(uint256 _amount) external onlyOwner() {
 
         require(_totalSupply-_amount >= _minimumSupply, "Burn amount exceeds the minimumSupply.");
-        _totalSupply -=_amount;
         balances[_msgSender()]-=(_amount);
-        
+        _totalSupply -=_amount;        
     }
 
     function mint (uint256 _amount) external onlyOwner(){
 
         require(_totalSupply+_amount <= 1000000000 * 10 ** 18, "Mint amount exceeds the maxSupply.");
-        _totalSupply +=_amount;
         balances[_msgSender()]+=(_amount);
-
+        _totalSupply +=_amount;
     }
 
 
