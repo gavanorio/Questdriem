@@ -135,14 +135,17 @@ TOKEN INFO
     string public _symbol = "QSTD";
 
     address payable public taxAddress = payable(0x1e33fe4fB6c756dbaa15c6b280c7824330D0aB5B); 
+    address payable public rewardsAddress = payable(0x45211A747Ad8cE169e9E882acEe5d4E8942de9B8); 
     address public contractAddress = address(this);
 
 
-    uint public burnFee = 3; //3%
+    uint public burnFee = 1; //1%
     uint public taxFee = 2; //2%
+    uint public rewardsFee = 2; //2%
 
     uint public previousTaxFee=taxFee;
     uint public previousBurnFee=burnFee;
+    uint public previousRewardsFee=rewardsFee;
 
 
 
@@ -174,15 +177,15 @@ GENERAL FUNCTIONS
         return _decimals;
     }
 
-    function totalSupply() public returns (uint256) {
+    function totalSupply() public view returns (uint256) {
         return _totalSupply;
     }
 
-    function balanceOf(address value) public returns(uint256) {
+    function balanceOf(address value) public view returns(uint256) {
         return balances[value];
     }
 
-    function allowance(address owner, address spender) public returns (uint256) {
+    function allowance(address owner, address spender) public view returns (uint256) {
         return _allowances[owner][spender];
     }
 
@@ -253,11 +256,13 @@ TRANSFER FUNCTIONS
 
         uint256 taxAmount;
         uint256 burnAmount;
+        uint256 rewardsAmount;
 
         if(!takeFee) {
 
             taxAmount = 0;
             burnAmount = 0;
+            rewardsAmount = 0;
 
             balances[sender]-=(amount);
             balances[recipient]+=(amount);
@@ -270,13 +275,16 @@ TRANSFER FUNCTIONS
 
             taxAmount = calculateTaxFee(amount);
             burnAmount = calculateBurnFee(amount);
+            rewardsAmount = calculateRewardsFee(amount);
 
             balances[sender]-=(amount);
 
             balances[taxAddress]+=(taxAmount);
+            balances[rewardsAddress]+=(rewardsAmount);
+
             _totalSupply-=(burnAmount);
 
-            balances[recipient]+=(amount-taxAmount-burnAmount);
+            balances[recipient]+=(amount-taxAmount-burnAmount-rewardsAmount);
 
             emit Transfer(sender, recipient, amount);
 
@@ -291,6 +299,10 @@ CALCULATE FEES
 
     function calculateTaxFee(uint256 _amount) private view returns (uint256) {
         return _amount*(taxFee)/(100);
+    }
+
+    function calculateRewardsFee(uint256 _amount) private view returns (uint256) {
+        return _amount*(rewardsFee)/(100);
     }
 
     function calculateBurnFee(uint256 _amount) private view returns (uint256) {
@@ -331,6 +343,10 @@ ONLYOWNER EDIT CONTRACT FUNCTIONS
         taxAddress = payable(_taxAddress);
     }
 
+    function setRewardsAddress(address _rewardsAddress) external onlyOwner() {
+        rewardsAddress = payable(_rewardsAddress);
+    }
+
     function setTaxFeePercent(uint256 _taxFee) external onlyOwner() {
         require(_taxFee >= 0, 'Fee Too Low');
         require(_taxFee <= 5, 'Fee Too High');
@@ -343,18 +359,27 @@ ONLYOWNER EDIT CONTRACT FUNCTIONS
         burnFee = _burnFee;           
     }
 
+    function setRewardsFeePercent(uint256 _rewardsFee) external onlyOwner() {  
+        require(_rewardsFee >= 0, 'Rewards Too Low');
+        require(_rewardsFee <= 5, 'Rewards Too High');
+        rewardsFee = _rewardsFee;           
+    }
+
     function deactivateAllFees() external onlyOwner() {  
         
         previousTaxFee = taxFee;
         previousBurnFee = burnFee;
+        previousRewardsFee = rewardsFee;
 
         burnFee = 0;
-        taxFee = 0;      
+        taxFee = 0;
+        rewardsFee = 0;  
     }
 
     function activateAllFees() external onlyOwner() {  
         burnFee = previousBurnFee;
-        taxFee = previousTaxFee;     
+        taxFee = previousTaxFee;    
+        rewardsFee = previousRewardsFee; 
     }
 
     function manualBurn(uint256 _amount) external onlyOwner() {
