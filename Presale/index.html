@@ -1,311 +1,379 @@
 <!DOCTYPE html>
+
 <html>
+
 <head>
+
 	<meta charset="utf-8">
+
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+
 	<link rel="stylesheet" type="text/css" href="style.css">
+
 	<title>Form</title>
+
 </head>
+
 <body>
+
     <div class="section1">
+
         <div class="row">
+
             <div class="col-6">
-                <h2 class="title">Buy QuestDM (QSTD)</h2>
+
+                
+
+            
+
+                    <h2 class="title">145 MILLION QSTD</h2>
+
+                    
+
+                    <p class="grabs" style="font-size:40px" >Up for grabs!</p>
+
+                    
+
                 <p>You must buy at least <span class="qunty-txt">250,000 QSTD</span>, Max 20,000,000 QSTD Per Wallet Address.</p><hr style="height:5pt; visibility:hidden;" />
+
                 <input class="input-box" type="number" name="QSTD" id='bnbAmount' placeholder="0.1 BNB" onkeyup='calculateFromBNB()'/>
-                <p>Enter Quantity. <span class="qunty-txt" id="totalTicketsAvailable">N/A available to buy</span></p>
+
+                <p>Enter Quantity. <span class="qunty-txt" id="totalTicketsAvailable"> Connect wallet to view Available Tokens</span></p>
+
                 <hr style="height:5pt; visibility:hidden;" />
+
+                
+
                 <input class="input-box" type="number" name="QSTD" id='qstdAmount' placeholder="250,000 QSTD" onkeyup='calculateFromQSTD()'/>
+
                 <br>
-                <hr class="rounded" />
+
                 
-                <p>You must use BNB (Smart Chain) coins in order to make the purchase of QuestDM Tokens (QSTD).</p>
+
+                <center><p>You must use BNB (Smart Chain) coins in order to make the purchase of QuestDM Tokens (QSTD)..</p></center>
+
                 
+
                   <style>
+
 table { border-collapse: collapse; }
-tr:nth-child(1) { border: solid thin #fff; }
-tr:nth-child(2) { border: solid thin #fff; }
-tr:nth-child(3) { border: solid thin #fff; }
+
+tr:nth-child(1) { border: solid thin #230E43; }
+
+tr:nth-child(2) { border: solid thin #230E43; }
+
+tr:nth-child(3) { border: solid thin #230E43; }
+
 </style>
+
                 <table class="table-box">
+
                     <tbody>
+
                         <tr>
+
                             <td>Your buying:</td>
+
                             <td id="toBuy">N/A QSTD</td>
+
                         </tr>
+
                         <tr>
+
                             <td>Total Amount:</td>
+
                             <td id="bnbSpent">N/A BNB</td>
+
                         </tr>
+
                     </tbody>
+
                 </table>
+
                     <ul class="btn-box">
+
                     	<li><a class="link-btn" href="#" id='loginButton' onclick="connect()">Connect Wallet</a></li>
+
                     	<li><a class="link-btn" href="#" id='buyNow'>Buy Now</a></li>
+
                     </ul>
+
                     
+
                     
-                    <p>Need BNB?,<span class="qunty-txt">  Use  RAMP</span> to buy BNB  with ease.</p>
+
+                    <center><p>Need BNB?,<span class="qunty-txt"><a href="https://www.moonpay.com/buy" style="color:#6A82FE;"> Use  MoonPay</a></span> to buy BNB  with ease.</p></center>
+
             </div>
+
         </div>
+
     </div>
+
 </body>
 
+
+
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.5.2/ethers.umd.min.js" integrity="sha512-PtOcu3WZTldHT+VjAJdWV5ss+iGebEgc1h5olJuxUNPvKuC0VOZsk1UhNgQYi5oIyrNHhdIOw8WQMdZwBv1MyQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
 
 <script>
 
+
+
 //Buttons
+
 const loginButton = document.getElementById('loginButton')
+
 const buyNow = document.getElementById('buyNow')
 
+
+
 //user Wallet
+
 const userWallet = document.getElementById('userWallet')
 
+
+
 //
+
 const totalTicketsAvailable = document.getElementById('totalTicketsAvailable')
+
 let accounts = [];
 
 
+
+
+
 window.onload = function() {
+
   var reloading = sessionStorage.getItem("reloading");
+
   if (reloading) {
+
       sessionStorage.removeItem("reloading");
+
       connect();
+
   }
+
 }
 
-const address = "0x8ebA3bD9f3805629E33c9E03a540B47400e803D0";
-const abi = [
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "numberOfTokens",
-				"type": "uint256"
-			}
-		],
-		"name": "buyTokens",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_newAddress",
-				"type": "address"
-			}
-		],
-		"name": "changeFeeAddress",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "previousOwner",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "newOwner",
-				"type": "address"
-			}
-		],
-		"name": "OwnershipTransferred",
-		"type": "event"
-	},
-	{
-		"inputs": [],
-		"name": "recoverTokens",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "splitEther",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "newOwner",
-				"type": "address"
-			}
-		],
-		"name": "transferOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "balance",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "feeAddress",
-		"outputs": [
-			{
-				"internalType": "address payable",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "noOfTokensAvailable",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "owner",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	}
-]
+
+
+const address = "0x6752edBdf0369948ce2A90C42305a34f61Fe8615";
+
+const abi = [{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"inputs":[],"name":"automaticBNB","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bool","name":"_truefalse","type":"bool"}],"name":"automaticBNBOn","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"balance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"numberOfTokens","type":"uint256"}],"name":"buyTokens","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"_newAddress","type":"address"}],"name":"changeFeeAddress","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"destroy","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"feeAddress","outputs":[{"internalType":"address payable","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"noOfTokensAvailable","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"recoverTokens","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"splitEther","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"}]
+
 const provider = new ethereum.request.contract(abi).at(contractAddress);
 
 
+
+
+
 async function connect() {
+
   if (typeof window.ethereum !== "undefined") {
+
     try {
+
 	  await ethereum.request({ method: "eth_requestAccounts" });
+
 	  await ethereum.request({
+
     method: 'wallet_switchEthereumChain',
+
     params: [{ chainId: '0x38' }],
+
   });
+
     } catch (error) {
+
       console.log(error);
+
     }
+
+
+
 
 
 	accounts = await ethereum.request({ method: "eth_accounts" });
+
   document.getElementById("loginButton").innerHTML = 'Connected to ' + accounts[0];
+
   
+
 	console.log(accounts);
+
 	
+
 	const provider = new ethers.providers.Web3Provider(window.ethereum);
+
 	let network = await provider.getNetwork()
+
 	console.log(network);
+
 	const signer = provider.getSigner();
+
 	const contractBuy = new ethers.Contract(address, abi, signer);
 
+
+
   window.ethereum.on('accountsChanged', function (accounts) {
+
     reloadP();
+
   });
 
+
+
   contractBuy.noOfTokensAvailable().then((ticketsAvailable) => totalTicketsAvailable.innerHTML = ticketsAvailable/10**18 + ' available to buy');
+
  
+
   document.getElementById('loginButton').addEventListener("click", function() {
+
       alert("disconnected");
+
       document. location. reload();
+
       });
+
+
 
 	document.getElementById('buyNow').addEventListener("click", function() {
 
+
+
 		const amount = document.getElementById("qstdAmount").value;
 
+
+
     if(amount<250000){
+
       alert('QSTD Amount to buy is too small. Minimum amount is 250,000QSTD');
-    }
-    if(amount>20000000){
-      alert('QSTD Amount to buy is too large. Maximum amount is 20,000,000QSTD');
+
     }
 
+    if(amount>20000000){
+
+      alert('QSTD Amount to buy is too large. Maximum amount is 20,000,000QSTD');
+
+    }
+
+
+
 		var etherAmount = amount*4/10000000;
+
 		var decimalPlaces = 18;
+
 		var sendAmount = new ethers.utils.parseUnits(etherAmount.toString(), decimalPlaces);
+
+
+
 
 
 		console.log('weiValue ->  '+sendAmount);
 
+
+
 		try {
+
 				const fundit =  contractBuy.buyTokens(amount, {
+
 														from: accounts[0], 
+
 														value: sendAmount,
+
 													}).then((txHash) =>  transactionSent()).catch((error) => alert(JSON.stringify(error.message) + JSON.stringify(error.data)));
 
 
+
+
+
 		} catch (error) {
+
       alert(error.toString());
+
  	  	}	
 
+
+
 		});
+
 	}
+
   
 
 
+
+
+
    else {
+
     document.getElementById("loginButton").innerHTML =
+
       "Please install MetaMask";
+
   }
+
 }
+
+
 
 async function transactionSent(){
+
   alert("Transaction sent. Wait a few seconds for the tx to confirm. Remember to import QSTD on Metamask.");
-window.location.href = 'http://qstdpresale.com/wallettoken';
+
   reloadP();
+
 }
+
+
 
 function reloadP() {
+
     sessionStorage.setItem("reloading", "true");
+
     document.location.reload();
+
 }
+
+
 
 function calculateFromBNB(){
+
   var BNBinput =  document.getElementById("bnbAmount").value;
+
   document.getElementById("qstdAmount").value=parseInt(BNBinput/0.0000004);
+
   document.getElementById('toBuy').innerHTML=parseInt(BNBinput/0.0000004)+' QSTD';
+
   document.getElementById("bnbSpent").innerHTML=BNBinput+' BNB';
+
 }
 
+
+
 function calculateFromQSTD(){
+
   var QSTDinput =  document.getElementById("qstdAmount").value;
+
   document.getElementById("bnbAmount").value=parseFloat(QSTDinput*0.0000004).toFixed(2);
+
   document.getElementById("bnbSpent").innerHTML=parseFloat(QSTDinput*0.0000004).toFixed(2)+' BNB';
+
   document.getElementById('toBuy').innerHTML=QSTDinput+' QSTD';
+
 }
+
 </script>
+
+
+
 
 
 </html>
