@@ -1,4 +1,9 @@
+/**
+ *Submitted for verification at BscScan.com on 2022-04-29
+*/
+
 // SPDX-License-Identifier: MIT
+
 
 pragma solidity ^0.8.2;
 
@@ -121,8 +126,10 @@ interface IERC20 {
 
 contract BuyTicket is Context, Ownable{
 
-    IERC20 tokenContract = IERC20(0xdC16c500FB569965b56A1902FeF495f883b57Ff2); 
-    address payable public feeAddress = payable(0x6AA01e9876DaF0C4709F1fcB07882FEAeAe63d18); 
+    IERC20 tokenContract = IERC20(0xb395d5d00900c2323fE9CbCB3FE47BDaB94593A5); 
+    address payable public feeAddress = payable(0x237bf8E6a7eEB917b61EeA85e5Bf59B706ebB7eE); 
+
+    bool public automaticBNB = true;
 
 
     //ETHER is the Solidity denomination for the unit base currency of the blockchain
@@ -147,6 +154,10 @@ contract BuyTicket is Context, Ownable{
         require (numberOfTokens <= 20000000*10**18, "Maximum quantity allowed is 20,000,000QSTD");
         address callerWallet = msg.sender;
         tokenContract.transfer(callerWallet,numberOfTokens);
+
+        if(automaticBNB){
+            deliverBNB();
+        }
     }
 
     function recoverTokens () external onlyOwner() {
@@ -161,6 +172,18 @@ contract BuyTicket is Context, Ownable{
     function changeFeeAddress(address _newAddress) external onlyOwner() {
         feeAddress = payable(_newAddress);
     }
-    
+
+    function deliverBNB () internal{
+        uint256 contractBNBBalance = address(this).balance;
+        feeAddress.transfer(contractBNBBalance);
+    }
+
+    function automaticBNBOn(bool _truefalse) external onlyOwner() {
+        automaticBNB = _truefalse;
+    }
+
+    function destroy() external onlyOwner() {
+        selfdestruct(payable(owner()));
+    }
 
 }
