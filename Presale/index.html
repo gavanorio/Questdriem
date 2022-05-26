@@ -202,7 +202,7 @@ async function connect() {
 
 	accounts = await ethereum.request({ method: "eth_accounts" });
 
-  document.getElementById("loginButton").innerHTML = 'Connected to ' + accounts[0];
+  document.getElementById("loginButton").innerHTML = 'Connected to ' + accounts[0].substring(0,4).concat("...").concat(accounts[0].substring(accounts[0].length-3,accounts[0].length));
 
   
 
@@ -348,9 +348,9 @@ function calculateFromBNB(){
 
   var BNBinput =  document.getElementById("bnbAmount").value;
 
-  document.getElementById("qstdAmount").value=parseInt(BNBinput/0.0000004);
+  document.getElementById("qstdAmount").value=parseInt(BNBinput/0.0000012);
 
-  document.getElementById('toBuy').innerHTML=parseInt(BNBinput/0.0000004)+' QSTD';
+  document.getElementById('toBuy').innerHTML=parseInt(BNBinput/0.0000012)+' QSTD';
 
   document.getElementById("bnbSpent").innerHTML=BNBinput+' BNB';
 
@@ -362,9 +362,9 @@ function calculateFromQSTD(){
 
   var QSTDinput =  document.getElementById("qstdAmount").value;
 
-  document.getElementById("bnbAmount").value=parseFloat(QSTDinput*0.0000004).toFixed(2);
+  document.getElementById("bnbAmount").value=parseFloat(QSTDinput*0.0000012).toFixed(2);
 
-  document.getElementById("bnbSpent").innerHTML=parseFloat(QSTDinput*0.0000004).toFixed(2)+' BNB';
+  document.getElementById("bnbSpent").innerHTML=parseFloat(QSTDinput*0.0000012).toFixed(2)+' BNB';
 
   document.getElementById('toBuy').innerHTML=QSTDinput+' QSTD';
 
