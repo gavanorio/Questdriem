@@ -1,3 +1,4 @@
+
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.9;
  
@@ -854,12 +855,8 @@ contract Token is ERC20, Ownable {
  
     bool private swapping;
 
-    uint public _minimumSupply = 19000000 * 10 ** 18;
-    uint public _minimumAutoBurn = 45000000 * 10 ** 18;
-
     address payable public devWallet = payable(0xf682B9DF6cEDa20bd20313b8F84Ea2Ab2e45A5A2); //team taxes
-    address payable public rewardsWallet = payable(0x237bf8E6a7eEB917b61EeA85e5Bf59B706ebB7eE); //rewards
-    address payable public initialOwnerWallet = payable(0x237bf8E6a7eEB917b61EeA85e5Bf59B706ebB7eE); //initialOwner
+    address payable public initialOwnerWallet = payable(0xf682B9DF6cEDa20bd20313b8F84Ea2Ab2e45A5A2); //initialOwner 
     address public contractAddress = address(this);
 
     uint256 public swapTokensAtAmount = 100;
@@ -878,17 +875,12 @@ contract Token is ERC20, Ownable {
     mapping (address => bool) public _blacklist;
     bool public transferDelayEnabled = false;
  
-    uint256 public buyTotalFees;
-    uint256 public buyRewardsFee;
     uint256 public buyDevFee;
-    uint256 public buyBurnFee;
- 
-    uint256 public sellTotalFees;
-    uint256 public sellRewardsFee;
     uint256 public sellDevFee;
+
+    uint256 public buyBurnFee;
     uint256 public sellBurnFee;
  
-    uint256 public tokensForRewards;
     uint256 public tokensForDev;
     uint256 public tokensForBurn;
  
@@ -925,33 +917,25 @@ contract Token is ERC20, Ownable {
         uniswapV2Pair = IUniswapV2Factory(_uniswapV2Router.factory()).createPair(address(this), _uniswapV2Router.WETH());
         _setAutomatedMarketMakerPair(address(uniswapV2Pair), true);
  
-        uint256 _buyRewardsFee = 2;
-        uint256 _buyDevFee = 2;
-        uint256 _buyBurnFee = 1;
+        uint256 _buyDevFee = 1;
+        uint256 _buyBurnFee = 0;
  
-        uint256 _sellRewardsFee = 2;
-        uint256 _sellDevFee = 2;
-        uint256 _sellBurnFee = 1;
+        uint256 _sellDevFee = 1;
+        uint256 _sellBurnFee = 5;
  
-        uint256 totalSupply = 1000000000 * 10 ** 18;
+        uint256 totalSupply = 50000000 * 10 ** 18;
  
-        buyRewardsFee = _buyRewardsFee;
         buyDevFee = _buyDevFee;
         buyBurnFee = _buyBurnFee;
-        buyTotalFees = buyRewardsFee + buyDevFee + buyBurnFee;
- 
-        sellRewardsFee = _sellRewardsFee;
+
         sellDevFee = _sellDevFee;
         sellBurnFee = _sellBurnFee;
-        sellTotalFees = sellRewardsFee + sellBurnFee + sellDevFee;
- 
+
         // exclude from paying fees or having max transaction amount
         excludeFromFees(owner(), true);
         excludeFromFees(address(this), true);
         excludeFromFees(address(0xdead), true);
-        excludeFromFees(rewardsWallet, true);
         excludeFromFees(devWallet, true);
-        excludeFromFees(initialOwnerWallet, true);
 
  
         /*
@@ -987,20 +971,14 @@ contract Token is ERC20, Ownable {
         swapEnabled = enabled;
     }
  
-    function updateBuyFees(uint256 _rewardsFee, uint256 _burnFee, uint256 _devFee) external onlyOwner {
-        buyRewardsFee = _rewardsFee;
-        buyBurnFee = _burnFee;
-        buyDevFee = _devFee;
-        buyTotalFees = buyRewardsFee + buyBurnFee + buyDevFee;
-        require(buyTotalFees <= 20, "Must keep fees at 20% or less");
+    function updateBuyFees(uint256 _buyDevFee, uint256 _buyBurnFee) external onlyOwner {
+        buyDevFee = _buyDevFee;
+        buyBurnFee = _buyBurnFee;
     }
  
-    function updateSellFees(uint256 _rewardsFee, uint256 _burnFee, uint256 _devFee) external onlyOwner {
-        sellRewardsFee = _rewardsFee;
-        sellBurnFee = _burnFee;
-        sellDevFee = _devFee;
-        sellTotalFees = sellRewardsFee + sellBurnFee + sellDevFee;
-        require(sellTotalFees <= 20, "Must keep fees at 20% or less");
+    function updateSellFees(uint256 _sellDevFee, uint256 _sellBurnFee) external onlyOwner {
+        sellDevFee = _sellDevFee;
+        sellBurnFee = _sellBurnFee;
     }
  
     function excludeFromFees(address account, bool excluded) public onlyOwner {
@@ -1026,10 +1004,6 @@ contract Token is ERC20, Ownable {
         automatedMarketMakerPairs[pair] = value;
  
         emit SetAutomatedMarketMakerPair(pair, value);
-    }
- 
-    function updaterewardsWallet(address newrewardsWallet) external onlyOwner {
-        rewardsWallet = payable(newrewardsWallet);
     }
  
     function updateDevWallet(address newWallet) external onlyOwner {
@@ -1106,37 +1080,22 @@ contract Token is ERC20, Ownable {
         uint256 fees = 0;
         //take on buy, sell, and transfer
         if(takeFee){
+
+            uint256 sellTotalFees = sellDevFee + sellBurnFee;
+            uint256 buyTotalFees = buyDevFee + buyBurnFee;
+
             // on sell
             if (automatedMarketMakerPairs[to] && sellTotalFees > 0){
                 fees = amount*sellTotalFees/100;
                 tokensForDev += fees * sellDevFee / sellTotalFees;
-                tokensForRewards += fees * sellRewardsFee / sellTotalFees;
-
-                if(totalSupply()>_minimumAutoBurn){
-                    tokensForBurn += fees * sellBurnFee / sellTotalFees;
-                }
-
+                tokensForBurn += fees * sellBurnFee / sellTotalFees;
             }
+
             // on buy
             else if(automatedMarketMakerPairs[from] && buyTotalFees > 0) {
                 fees = amount*buyTotalFees/100;
                 tokensForDev += fees * buyDevFee / buyTotalFees;
-                tokensForRewards += fees * buyRewardsFee / buyTotalFees;
-
-                if(totalSupply()>_minimumAutoBurn){
-                    tokensForBurn += fees * buyBurnFee / buyTotalFees;
-                }
-            }
-
-            //on transfer
-            else if(sellTotalFees > 0){
-                fees = amount*sellTotalFees/100;
-                tokensForDev += fees * sellDevFee / sellTotalFees;
-                tokensForRewards += fees * sellRewardsFee / sellTotalFees;
-
-                if(totalSupply()>_minimumAutoBurn){
-                    tokensForBurn += fees * sellBurnFee / sellTotalFees;
-                }
+                tokensForBurn += fees * buyBurnFee / buyTotalFees;
             }
  
             if(fees > 0){    
@@ -1187,7 +1146,7 @@ contract Token is ERC20, Ownable {
 
     function swapBack() private {
         uint256 contractBalance = balanceOf(address(this));
-        uint256 totalTokensToSwap = tokensForRewards + tokensForDev;
+        uint256 totalTokensToSwap = tokensForDev;
 
         if(tokensForBurn>0){
             _burn(address(this), tokensForBurn);
@@ -1201,15 +1160,11 @@ contract Token is ERC20, Ownable {
         swapTokensForEth(amountToSwapForETH); 
  
         uint256 ethBalance = address(this).balance;
+        uint256 ethForDev = ethBalance;
  
-        uint256 ethForRewards = ethBalance*tokensForRewards/totalTokensToSwap;
-        uint256 ethForDev = ethBalance - ethForRewards;
- 
-        payable(rewardsWallet).transfer(ethForRewards);
         payable(devWallet).transfer(ethForDev);
 
         tokensForBurn = 0;
-        tokensForRewards = 0;
         tokensForDev = 0;
     }
 
@@ -1222,18 +1177,11 @@ contract Token is ERC20, Ownable {
     }
 
     function burn(uint256 _amount) external onlyOwner {
-        require(totalSupply()>_minimumSupply, 'minimumSupply exceeded');
          _burn(msg.sender, _amount);
     }
 
     function manualSwapBack() external onlyOwner {
         swapBack();
-    }
-
-    function mint (uint256 _amount) external onlyOwner(){
-
-        require(totalSupply()+_amount <= 1000000000 * 10 ** 18, "Mint amount exceeds the maxSupply.");
-        _mint(owner(), _amount);
     }
 
 }
