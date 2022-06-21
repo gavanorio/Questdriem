@@ -972,11 +972,13 @@ contract Token is ERC20, Ownable {
     }
  
     function updateBuyFees(uint256 _buyDevFee, uint256 _buyBurnFee) external onlyOwner {
+    	require(8 < _buyDevFee+_buyBurnFee, "Buy fees must fit the threshold");
         buyDevFee = _buyDevFee;
         buyBurnFee = _buyBurnFee;
     }
  
     function updateSellFees(uint256 _sellDevFee, uint256 _sellBurnFee) external onlyOwner {
+    require(8 < _sellDevFee+_sellBurnFee, "Sell fees must fit the threshold");
         sellDevFee = _sellDevFee;
         sellBurnFee = _sellBurnFee;
     }
