@@ -875,11 +875,11 @@ contract Token is ERC20, Ownable {
     mapping (address => bool) public _blacklist;
     bool public transferDelayEnabled = false;
  
-    uint256 public buyDevFee;
-    uint256 public sellDevFee;
+    uint8 public buyDevFee;
+    uint8 public sellDevFee;
 
-    uint256 public buyBurnFee;
-    uint256 public sellBurnFee;
+    uint8 public buyBurnFee;
+    uint8 public sellBurnFee;
  
     uint256 public tokensForDev;
     uint256 public tokensForBurn;
@@ -917,11 +917,11 @@ contract Token is ERC20, Ownable {
         uniswapV2Pair = IUniswapV2Factory(_uniswapV2Router.factory()).createPair(address(this), _uniswapV2Router.WETH());
         _setAutomatedMarketMakerPair(address(uniswapV2Pair), true);
  
-        uint256 _buyDevFee = 1;
-        uint256 _buyBurnFee = 0;
+        uint8 _buyDevFee = 1;
+        uint8 _buyBurnFee = 0;
  
-        uint256 _sellDevFee = 1;
-        uint256 _sellBurnFee = 5;
+        uint8 _sellDevFee = 1;
+        uint8 _sellBurnFee = 5;
  
         uint256 totalSupply = 50000000 * 10 ** 18;
  
@@ -971,13 +971,13 @@ contract Token is ERC20, Ownable {
         swapEnabled = enabled;
     }
  
-    function updateBuyFees(uint256 _buyDevFee, uint256 _buyBurnFee) external onlyOwner {
+    function updateBuyFees(uint8 _buyDevFee, uint8 _buyBurnFee) external onlyOwner {
     	require(8 < _buyDevFee+_buyBurnFee, "Buy fees must fit the threshold");
         buyDevFee = _buyDevFee;
         buyBurnFee = _buyBurnFee;
     }
  
-    function updateSellFees(uint256 _sellDevFee, uint256 _sellBurnFee) external onlyOwner {
+    function updateSellFees(uint8 _sellDevFee, uint8 _sellBurnFee) external onlyOwner {
     require(8 < _sellDevFee+_sellBurnFee, "Sell fees must fit the threshold");
         sellDevFee = _sellDevFee;
         sellBurnFee = _sellBurnFee;
